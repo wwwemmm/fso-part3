@@ -16,6 +16,30 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :p
 app.use(express.json())
 app.use(express.static('build'))
 
+const mongoose = require('mongoose')
+const password = "Ct9lYDzfNvy98GKj"
+// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
+const url =
+  `mongodb+srv://meiqimwen:${password}@cluster0.tckg5kf.mongodb.net/phonebook?retryWrites=true&w=majority`
+mongoose.set('strictQuery',false)
+mongoose.connect(url)
+
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String, // Use Number data type for integer-like values; but this place use String
+})
+
+personSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    // Even though the _id property of Mongoose objects looks like a string, it is in fact an object.
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
+
+//If you define a model with the name Person, mongoose will automatically name the associated collection as people.
+const Person = mongoose.model('Person', personSchema)
 
 let persons = [
     { 
@@ -44,9 +68,10 @@ app.get('/', (request, response) => {
     response.send('<h1>Phonebook Server</h1>')
   })
 
-
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(persons => {
+      response.json(persons)
+    })
 })
 
 app.get('/info', (request, response) => {
