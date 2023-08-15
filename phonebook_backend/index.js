@@ -19,31 +19,6 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :p
 app.use(express.json())
 app.use(express.static('build'))
 
-/*
-const mongoose = require('mongoose')
-const password = "Ct9lYDzfNvy98GKj"
-// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
-const url =
-  `mongodb+srv://meiqimwen:${password}@cluster0.tckg5kf.mongodb.net/phonebook?retryWrites=true&w=majority`
-mongoose.set('strictQuery',false)
-mongoose.connect(url)
-
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String, // Use Number data type for integer-like values; but this place use String
-})
-
-personSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    // Even though the _id property of Mongoose objects looks like a string, it is in fact an object.
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-  }
-})
-//If you define a model with the name Person, mongoose will automatically name the associated collection as people.
-const Person = mongoose.model('Person', personSchema)
-*/
 
 let persons = [
     { 
@@ -88,21 +63,13 @@ app.get('/info', (request, response) => {
 app.get('/api/persons/:id', (request, response) => {
     // The id parameter in the route of a request can be accessed through the request object:
     // the id accessed from the request is string
-    const id = Number(request.params.id)
-    console.log(id)
-    const person = persons.find(person => {
-        return person.id === id
+    console.log(request.params.id) //id is Str
+    Person.findById(request.params.id).then(person => {
+      console.log(person)
+      response.json(person)
+      //console.log("404")
+      //response.status(404).end()
     })
-    console.log(person)
-
-    // The if-condition leverages the fact that all JavaScript objects are truthy,
-    // undefined is falsy meaning that it will evaluate to false
-    if (person) {
-        response.json(person)
-      } else {
-        console.log("404")
-        response.status(404).end()
-    }
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -111,20 +78,11 @@ app.delete('/api/persons/:id', (request, response) => {
     console.log(`has deleted ${id}`)
     response.status(204).end()
 })
-
-const generateId = () => {
-    const id = Math.round(Math.random()*100000000)
-    if (!persons.find(person => person.id === id)){
-        return id
-    } else {
-        return generateId()
-    }
-}
   
 app.post('/api/persons', (request, response) => {
     const body = request.body
     
-    if (!body.name || !body.number) {
+    if (body.name === undefined || body.number === undefined) {
       return response.status(400).json({ 
         error: 'name or number missing' 
       })
@@ -136,16 +94,15 @@ app.post('/api/persons', (request, response) => {
             error: 'name must be unique' 
         })
     }
-
-    const person = {
+    
+    const person = new Person({
       name: body.name,
       number: body.number,
-      id: generateId(),
-    }
-  
-    persons = persons.concat(person)
-  
-    response.json(person)
+    })
+    person.save().then(savePerson => {
+      console.log("save to the database...")
+      response.json(savePerson)
+    })
 })
 
 app.use(unknownEndpoint)
