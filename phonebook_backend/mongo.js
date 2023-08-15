@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 if (process.argv.length < 3) {
-  console.log("Please include the password")
+  console.log('Please include the password')
   //console.log('the params should be: node mongo.js yourpassword Anna 040-1234556')
   //console.log('Notice that if the name contains whitespace characters, it must be enclosed in quotes')
   process.exit(1)
@@ -22,7 +22,7 @@ const personSchema = new mongoose.Schema({
 const Person = mongoose.model('Person', personSchema)
 
 if (process.argv.length === 3){
-  console.log("phonebook:")
+  console.log('phonebook:')
   Person.find({}).then(result => {
     result.forEach(person => {
       console.log(`${person.name} ${person.number}`)
@@ -38,7 +38,7 @@ else if (process.argv.length === 5){
     number: process.argv[4],
   })
 
-  person.save().then(result => {
+  person.save().then(() => {
     console.log(`added ${process.argv[3]} number ${process.argv[4]} to phonebook`)
     mongoose.connection.close()
   })

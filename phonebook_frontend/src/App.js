@@ -1,10 +1,8 @@
 import { useState, useEffect} from 'react'
-import axios from 'axios'
 import personService from './services/persons'
 import Notification from './components/Notification'
 import PersonForm from './components/PersonForm'
 import { Persons, Filter} from './components/Persons'
-
 
 const App = () => {
   
@@ -48,11 +46,14 @@ const App = () => {
           number:newNumber,
           id: persons_with_same_name[0].id
         }
+        //console.log("id:", persons_with_same_name[0].id)
+        //console.log("person_with_same_name:", persons_with_same_name[0])
         personService
           .update(personObject.id, personObject)
             .then((returnedPerson) => {
+              //console.log("id:", persons_with_same_name[0].id)
               const update_person = persons.filter(item => item.id !== returnedPerson.id).concat(returnedPerson)
-              //console.log("returnedPerson", returnedPerson)
+              console.log("returnedPerson", returnedPerson)
               setPersons(update_person)
               setNotification(
                 {message:`Added ${newName}`,type:"fufilled"}
