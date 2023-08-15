@@ -62,9 +62,11 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
+  Person.find({}).then(persons => {
     const currentDate = new Date();
     const num = persons.length
     response.send(`Phonebook has info for ${num} people</br>${currentDate}`)
+  })
 })
 
 // We can define parameters for routes in express by using the colon syntax:
@@ -100,7 +102,6 @@ app.post('/api/persons', (request, response) => {
         error: 'name or number missing' 
       })
     }
-    
     /*
     const person_same_name = persons.find(person => person.name === body.name)
     if (person_same_name) {
@@ -118,6 +119,20 @@ app.post('/api/persons', (request, response) => {
       console.log("save to the database...")
       response.json(savePerson)
     })
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+  const person = {
+    name: body.name,
+    number: body.number,
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
 })
 
 app.use(unknownEndpoint)
