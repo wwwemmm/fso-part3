@@ -1,11 +1,14 @@
+// It's important that dotenv gets imported before the Person model is imported. 
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
-
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
+const Person = require('./models/person')
+
 app.use(cors())
 
 morgan.token('post-body', (req, res) => { 
@@ -16,6 +19,7 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :p
 app.use(express.json())
 app.use(express.static('build'))
 
+/*
 const mongoose = require('mongoose')
 const password = "Ct9lYDzfNvy98GKj"
 // DO NOT SAVE YOUR PASSWORD TO GITHUB!!
@@ -37,9 +41,9 @@ personSchema.set('toJSON', {
     delete returnedObject.__v
   }
 })
-
 //If you define a model with the name Person, mongoose will automatically name the associated collection as people.
 const Person = mongoose.model('Person', personSchema)
+*/
 
 let persons = [
     { 
