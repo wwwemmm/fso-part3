@@ -4,21 +4,29 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
+
+const Person = require('./models/person')
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
-const Person = require('./models/person')
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+  console.error(error.name)
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+  next(error)
+}
 
+app.use(express.static('build'))
+// Don't foget this
+app.use(express.json())
 app.use(cors())
-
+//app.use(requestLogger)
 morgan.token('post-body', (req, res) => { 
     if(req.method === "POST"){return JSON.stringify(req.body)}
     })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :post-body'))
-// Don't foget this
-app.use(express.json())
-app.use(express.static('build'))
-
 
 let persons = [
     { 
@@ -60,23 +68,28 @@ app.get('/info', (request, response) => {
 })
 
 // We can define parameters for routes in express by using the colon syntax:
-app.get('/api/persons/:id', (request, response) => {
+// don't foget to add next argument in the callback
+app.get('/api/persons/:id', (request, response, next) => {
     // The id parameter in the route of a request can be accessed through the request object:
     // the id accessed from the request is string
     console.log(request.params.id) //id is Str
     Person.findById(request.params.id).then(person => {
-      console.log(person)
-      response.json(person)
-      //console.log("404")
-      //response.status(404).end()
+      if (person) {
+      response.json(person)}
+      // if the id is not in the database
+      else {
+        response.status(404).end()
+      }
     })
+    .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-    console.log(`has deleted ${id}`)
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndRemove(request.params.id)
+  .then(result => {
     response.status(204).end()
+  })
+  .catch(error => next(error))
 })
   
 app.post('/api/persons', (request, response) => {
@@ -88,12 +101,14 @@ app.post('/api/persons', (request, response) => {
       })
     }
     
+    /*
     const person_same_name = persons.find(person => person.name === body.name)
     if (person_same_name) {
         return response.status(400).json({ 
             error: 'name must be unique' 
         })
     }
+    */
     
     const person = new Person({
       name: body.name,
@@ -106,6 +121,11 @@ app.post('/api/persons', (request, response) => {
 })
 
 app.use(unknownEndpoint)
+
+
+// this has to be the last loaded middleware.
+app.use(errorHandler)
+
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
