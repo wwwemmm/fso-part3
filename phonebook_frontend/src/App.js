@@ -63,12 +63,12 @@ const App = () => {
                 setNotification({message:null,type:null})
               }, 5000)})
             .catch(error => {
-              console.log("catch error")
+              //console.log(error.response.data.error)
               setNotification(
-                {message:`Information of ${newName} has already been removed from server`,
+                {message:error.response.data.error,
                 type:"error"}
               )
-              setPersons(persons.filter(n => n.name !== newName))
+              //setPersons(persons.filter(n => n.name !== newName))
               setTimeout(() => {
                 setNotification({message:null,type:null})
               }, 5000)
@@ -92,6 +92,15 @@ const App = () => {
           )
           setNewName('')
           setNewNumber('')
+          setTimeout(() => {
+            setNotification({message:null,type:null})
+          }, 5000)
+        })
+        .catch(error => {
+          console.log(error.response.data.error)
+          setNotification(
+            {message:error.response.data.error,type:"error"}
+          )
           setTimeout(() => {
             setNotification({message:null,type:null})
           }, 5000)
